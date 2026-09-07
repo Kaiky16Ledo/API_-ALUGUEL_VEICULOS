@@ -1,0 +1,189 @@
+openapi: 3.0.0
+info:
+  title: API de Gestão e Aluguel de Veículos
+  description: API RESTful desenvolvida com Node.js, Express, PostgreSQL e Docker, seguindo MVC + Service Layer + Repository Pattern.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor Local de Desenvolvimento
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  
+  /api/v1/auth/login:
+    post:
+      summary: Autenticar usuário e obter token JWT
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: admin@locadora.com
+                password:
+                  type: string
+                  example: admin123
+      responses:
+        200:
+          description: Login bem-sucedido com JWT.
+        401:
+          description: Credenciais inválidas.
+
+  /api/v1/vehicles:
+    get:
+      summary: Listar todos os veículos
+      tags: [Veículos]
+      security: []
+      responses:
+        200:
+          description: Lista de veículos cadastrados.
+    post:
+      summary: Cadastrar novo veículo
+      tags: [Veículos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brand, model, color, year, plate, dailyRentValue]
+              properties:
+                brand:
+                  type: string
+                  example: Toyota
+                model:
+                  type: string
+                  example: Corolla
+                color:
+                  type: string
+                  example: Prata
+                year:
+                  type: integer
+                  example: 2024
+                plate:
+                  type: string
+                  example: ABC1D23
+                dailyRentValue:
+                  type: number
+                  example: 150.00
+      responses:
+        201:
+          description: Veículo cadastrado com sucesso.
+        400:
+          description: Dados inválidos.
+        409:
+          description: Placa já cadastrada.
+
+  /api/v1/vehicles/{idOrPlate}:
+    get:
+      summary: Buscar veículo por ID ou Placa
+      tags: [Veículos]
+      security: []
+      parameters:
+        - in: path
+          name: idOrPlate
+          required: true
+          schema:
+            type: string
+          example: BRA2E19
+      responses:
+        200:
+          description: Detalhes do veículo.
+        404:
+          description: Veículo não encontrado.
+
+  /api/v1/rentals:
+    get:
+      summary: Listar todos os aluguéis
+      tags: [Aluguéis]
+      responses:
+        200:
+          description: Lista de aluguéis.
+    post:
+      summary: Registrar novo aluguel relacionando cliente e veículo
+      tags: [Aluguéis]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clientId, vehicleId, startDate, endDate]
+              properties:
+                clientId:
+                  type: integer
+                  example: 1
+                vehicleId:
+                  type: integer
+                  example: 1
+                startDate:
+                  type: string
+                  format: date-time
+                  example: "2026-09-01T08:00:00Z"
+                endDate:
+                  type: string
+                  format: date-time
+                  example: "2026-09-05T18:00:00Z"
+      responses:
+        201:
+          description: Aluguel registrado com valor total calculado.
+        400:
+          description: Regras violadas (idade, datas inconsistentes).
+        409:
+          description: Veículo indisponível ou com conflito de datas.
+
+  /api/v1/rentals/{id}/cancel:
+    patch:
+      summary: Cancelar aluguel e liberar veículo
+      tags: [Aluguéis]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Aluguel cancelado e estorno processado.
+
+  /api/v1/payments:
+    post:
+      summary: Registrar pagamento de um aluguel
+      tags: [Pagamentos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rentalId, paymentMethod]
+              properties:
+                rentalId:
+                  type: integer
+                  example: 1
+                paymentMethod:
+                  type: string
+                  enum: [CREDIT_CARD, DEBIT_CARD, PIX, CASH]
+                  example: PIX
+                amount:
+                  type: number
+                  example: 270.00
+      responses:
+        201:
+          description: Pagamento confirmado.
