@@ -89,6 +89,56 @@ paths:
           description: Dados inválidos.
         409:
           description: Placa já cadastrada.
+  /api/v1/clients:
+    get:
+      summary: Listar todos os clientes (RF007)
+      tags: [Clientes]
+      responses:
+        200:
+          description: Lista de clientes retornada com sucesso.
+    post:
+      summary: Cadastrar novo cliente (RF006)
+      tags: [Clientes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, cpf, birthDate, address, email, phone, city, state]
+              properties:
+                name:
+                  type: string
+                  example: "João Silva"
+                cpf:
+                  type: string
+                  example: "111.222.333-44"
+                birthDate:
+                  type: string
+                  format: date
+                  example: "1995-08-20"
+                address:
+                  type: string
+                  example: "Rua das Palmeiras, 10"
+                email:
+                  type: string
+                  example: "joao.silva@email.com"
+                phone:
+                  type: string
+                  example: "(11) 99999-8888"
+                city:
+                  type: string
+                  example: "São Paulo"
+                state:
+                  type: string
+                  example: "SP"
+      responses:
+        201:
+          description: Cliente cadastrado com sucesso.
+        400:
+          description: Dados inválidos ou cliente menor de idade (menor que 18 anos).
+        409:
+          description: CPF já cadastrado no sistema.
 
   /api/v1/vehicles/{idOrPlate}:
     get:
